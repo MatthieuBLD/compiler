@@ -1,34 +1,30 @@
 # === Variables ===
 CC       := gcc
-CFLAGS   := -Wall -Wextra -Werror -Iincludes
+CFLAGS   := -Iincludes
 SRC_DIR  := src
-OBJ_DIR  := build/obj
-BIN_DIR  := build/out
-TARGET   := $(BIN_DIR)/main
+INC_DIR  := includes
+BUILD_DIR := build
+TARGET   := $(BUILD_DIR)/output
 
-SRC      := $(wildcard $(SRC_DIR)/*.c)
-OBJ      := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC))
+# === Directives ===
 
-# === Règles ===
-.PHONY: all clean fclean re exec
-
-all: $(TARGET)
-
-$(TARGET): $(OBJ)
-	@mkdir -p $(BIN_DIR)
+$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/operators.o | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $^ -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c | $(BUILD_DIR)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/operators.o: $(SRC_DIR)/operators.c $(INC_DIR)/operators.h | $(BUILD_DIR)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+# Crée le dossier build/ s’il n’existe pas
+$(BUILD_DIR):
+	mkdir -p $@
 
 exec: $(TARGET)
 	@./$(TARGET)
 
 clean:
-	@rm -rf $(OBJ_DIR)
+	rm -f $(BUILD_DIR)/*.o $(TARGET)
 
-fclean: clean
-	@rm -rf $(BIN_DIR)
-
-re: fclean all
+.PHONY: exec clean
